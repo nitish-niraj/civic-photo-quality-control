@@ -1,0 +1,72 @@
+# Production Configuration for Civic Quality Control App
+
+server:
+  host: 0.0.0.0
+  port: 8000
+  workers: 4
+  
+app_config:
+  # Security
+  secret_key: ${SECRET_KEY:-change-this-in-production}
+  max_content_length: 32MB  # Allow larger mobile photos
+  
+  # File handling
+  allowed_extensions:
+    - jpg
+    - jpeg
+    - png
+    - heic  # iOS photos
+    - webp
+  
+  # Quality thresholds (optimized for mobile photos)
+  quality_thresholds:
+    blur_threshold: 80.0      # Slightly more lenient for mobile
+    min_brightness: 25        # Account for varied lighting
+    max_brightness: 235
+    min_resolution_width: 720 # Modern mobile minimum
+    min_resolution_height: 480
+    
+  # Exposure settings
+  exposure_settings:
+    shadow_clipping_threshold: 0.02
+    highlight_clipping_threshold: 0.02
+    
+  # Storage
+  storage:
+    upload_folder: "/app/storage/temp"
+    processed_folder: "/app/storage/processed"
+    rejected_folder: "/app/storage/rejected"
+    
+  # Geographic boundaries (customize for your city)
+  city_boundaries:
+    min_lat: 40.4774
+    max_lat: 40.9176
+    min_lon: -74.2591
+    max_lon: -73.7004
+    
+  # Model settings
+  models:
+    yolo_model_path: "/app/models/yolov8n.pt"
+    confidence_threshold: 0.5
+    
+logging:
+  level: INFO
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  
+# Database configuration (if needed in future)
+database:
+  enabled: false
+  
+# Monitoring
+monitoring:
+  health_check_endpoint: /api/health
+  metrics_endpoint: /api/metrics
+  
+# CORS settings
+cors:
+  origins:
+    - "*"  # Configure appropriately for production
+  methods:
+    - GET
+    - POST
+    - OPTIONS

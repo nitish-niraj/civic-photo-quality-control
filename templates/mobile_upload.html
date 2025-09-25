@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Quality Control - Photo Upload</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .camera-preview {
+            display: none;
+        }
+
+        #video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        .captured-image {
+            max-width: 100%;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn.danger {
+            background: #dc3545;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .status-excellent { background: #d4edda; color: #155724; }
+        .status-good { background: #d1ecf1; color: #0c5460; }
+        .status-acceptable { background: #fff3cd; color: #856404; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+        .status-error { background: #f8d7da; color: #721c24; }
+
+        .validation-item {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .validation-item h4 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .validation-item.error {
+            border-left-color: #dc3545;
+        }
+
+        .validation-item.warning {
+            border-left-color: #ffc107;
+        }
+
+        .validation-item.success {
+            border-left-color: #28a745;
+        }
+
+        .issues-list {
+            list-style: none;
+            margin: 10px 0;
+        }
+
+        .issues-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .issues-list li:last-child {
+            border-bottom: none;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .metric strong {
+            color: #333;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Civic Quality Control</h1>
+            <p>Take or upload a photo to automatically check image quality for civic reporting</p>
+        </div>
+
+        <div class="upload-section">
+            <!-- Camera Preview -->
+            <div class="camera-preview" id="cameraPreview">
+                <video id="video" autoplay muted playsinline></video>
+                <canvas id="canvas"></canvas>
+                <img id="capturedImage" class="captured-image" alt="Captured photo">
+            </div>
+
+            <!-- File Input -->
+            <div class="file-input-wrapper" id="fileInputWrapper">
+                <input type="file" id="fileInput" class="file-input" accept="image/*" capture="environment">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">
+                    📷 Take Photo or Upload Image
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div id="actionButtons" style="display: none;">
+                <button class="btn" id="captureBtn" onclick="capturePhoto()">
+                    📸 Capture Photo
+                </button>
+                <button class="btn secondary" id="retakeBtn" onclick="retakePhoto()" style="display: none;">
+                    🔄 Retake Photo
+                </button>
+                <button class="btn secondary" id="stopCameraBtn" onclick="stopCamera()">
+                    ❌ Stop Camera
+                </button>
+            </div>
+
+            <!-- Process Button -->
+            <button class="btn" id="processBtn" onclick="processImage()" style="display: none;">
+                🔍 Analyze Photo Quality
+            </button>
+
+            <!-- Loading -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span>Analyzing photo quality...</span>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results">
+            <div id="resultsContent"></div>
+            <button class="btn secondary" onclick="resetApp()">
+                📷 Upload Another Photo
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let stream = null;
+        let capturedImageData = null;
+
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('capturedImage');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    
+                    // Store the file for processing
+                    capturedImageData = file;
+                    
+                    // Show process button
+                    document.getElementById('processBtn').style.display = 'block';
+                    document.getElementById('fileInputWrapper').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'environment',  // Use back camera on mobile
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    } 
+                });
+                
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                
+                document.getElementById('cameraPreview').style.display = 'block';
+                document.getElementById('fileInputWrapper').style.display = 'none';
+                document.getElementById('actionButtons').style.display = 'block';
+                
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                alert('Camera access failed. Please use file upload instead.');
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const capturedImage = document.getElementById('capturedImage');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            
+            // Convert to blob
+            canvas.toBlob(function(blob) {
+                capturedImageData = new File([blob], 'captured_photo.jpg', { type: 'image/jpeg' });
+                
+                const imageUrl = URL.createObjectURL(blob);
+                capturedImage.src = imageUrl;
+                capturedImage.style.display = 'block';
+            }, 'image/jpeg', 0.9);
+            
+            // Hide video, show captured image
+            video.style.display = 'none';
+            document.getElementById('captureBtn').style.display = 'none';
+            document.getElementById('retakeBtn').style.display = 'block';
+            document.getElementById('processBtn').style.display = 'block';
+        }
+
+        function retakePhoto() {
+            const video = document.getElementById('video');
+            const capturedImage = document.getElementById('capturedImage');
+            
+            video.style.display = 'block';
+            capturedImage.style.display = 'none';
+            
+            document.getElementById('captureBtn').style.display = 'block';
+            document.getElementById('retakeBtn').style.display = 'none';
+            document.getElementById('processBtn').style.display = 'none';
+            
+            capturedImageData = null;
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            document.getElementById('cameraPreview').style.display = 'none';
+            document.getElementById('actionButtons').style.display = 'none';
+            document.getElementById('fileInputWrapper').style.display = 'block';
+            document.getElementById('processBtn').style.display = 'none';
+        }
+
+        async function processImage() {
+            if (!capturedImageData) {
+                alert('No image to process');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('processBtn').style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('image', capturedImageData);
+
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                // Show results
+                displayResults(result);
+
+            } catch (error) {
+                console.error('Error processing image:', error);
+                document.getElementById('loading').style.display = 'none';
+                alert('Failed to process image. Please try again.');
+                document.getElementById('processBtn').style.display = 'block';
+            }
+        }
+
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            const contentDiv = document.getElementById('resultsContent');
+            
+            if (!result.success) {
+                contentDiv.innerHTML = `
+                    <div class="status-badge status-error">❌ Error</div>
+                    <p><strong>Error:</strong> ${result.message}</p>
+                `;
+                resultsDiv.style.display = 'block';
+                return;
+            }
+
+            const data = result.data;
+            const statusClass = `status-${data.overall_status.replace('_', '-')}`;
+            const statusEmoji = getStatusEmoji(data.overall_status);
+            
+            let html = `
+                <div class="status-badge ${statusClass}">
+                    ${statusEmoji} ${data.overall_status.replace('_', ' ').toUpperCase()}
+                </div>
+                <div class="metric">
+                    <span>Processing Time:</span>
+                    <strong>${data.processing_time_seconds}s</strong>
+                </div>
+            `;
+
+            // Add validation results
+            const validations = data.validations || {};
+            
+            // Blur Detection
+            if (validations.blur_detection && !validations.blur_detection.error) {
+                const blur = validations.blur_detection;
+                html += `
+                    <div class="validation-item ${blur.is_blurry ? 'error' : 'success'}">
+                        <h4>🔍 Blur Detection</h4>
+                        <div class="metric">
+                            <span>Blur Score:</span>
+                            <strong>${blur.blur_score}</strong>
+                        </div>
+                        <div class="metric">
+                            <span>Quality:</span>
+                            <strong>${blur.quality}</strong>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Brightness Validation
+            if (validations.brightness_validation && !validations.brightness_validation.error) {
+                const brightness = validations.brightness_validation;
+                html += `
+                    <div class="validation-item ${brightness.has_brightness_issues ? 'error' : 'success'}">
+                        <h4>💡 Brightness</h4>
+                        <div class="metric">
+                            <span>Mean Brightness:</span>
+                            <strong>${brightness.mean_brightness}</strong>
+                        </div>
+                        <div class="metric">
+                            <span>Quality Score:</span>
+                            <strong>${(brightness.quality_score * 100).toFixed(1)}%</strong>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Resolution Check
+            if (validations.resolution_check && !validations.resolution_check.error) {
+                const resolution = validations.resolution_check;
+                html += `
+                    <div class="validation-item ${resolution.meets_min_resolution ? 'success' : 'error'}">
+                        <h4>📏 Resolution</h4>
+                        <div class="metric">
+                            <span>Dimensions:</span>
+                            <strong>${resolution.width} × ${resolution.height}</strong>
+                        </div>
+                        <div class="metric">
+                            <span>Megapixels:</span>
+                            <strong>${resolution.megapixels} MP</strong>
+                        </div>
+                        <div class="metric">
+                            <span>Quality Tier:</span>
+                            <strong>${resolution.quality_tier}</strong>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Exposure Check
+            if (validations.exposure_check && !validations.exposure_check.error) {
+                const exposure = validations.exposure_check;
+                html += `
+                    <div class="validation-item ${exposure.has_good_exposure ? 'success' : 'warning'}">
+                        <h4>☀️ Exposure</h4>
+                        <div class="metric">
+                            <span>Quality:</span>
+                            <strong>${exposure.exposure_quality}</strong>
+                        </div>
+                        <div class="metric">
+                            <span>Dynamic Range:</span>
+                            <strong>${exposure.dynamic_range}</strong>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Issues
+            if (data.issues && data.issues.length > 0) {
+                html += `
+                    <div class="validation-item error">
+                        <h4>⚠️ Issues Found</h4>
+                        <ul class="issues-list">
+                `;
+                data.issues.forEach(issue => {
+                    html += `<li><strong>${issue.type}:</strong> ${issue.message}</li>`;
+                });
+                html += `</ul></div>`;
+            }
+
+            // Recommendations
+            if (data.recommendations && data.recommendations.length > 0) {
+                html += `
+                    <div class="validation-item">
+                        <h4>💡 Recommendations</h4>
+                        <ul class="issues-list">
+                `;
+                data.recommendations.forEach(rec => {
+                    html += `<li>${rec}</li>`;
+                });
+                html += `</ul></div>`;
+            }
+
+            contentDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        function getStatusEmoji(status) {
+            const emojis = {
+                'excellent': '🌟',
+                'good': '✅',
+                'acceptable': '⚠️',
+                'needs_improvement': '📈',
+                'rejected': '❌',
+                'error': '💥'
+            };
+            return emojis[status] || '❓';
+        }
+
+        function resetApp() {
+            // Reset all states
+            capturedImageData = null;
+            
+            // Hide all sections
+            document.getElementById('cameraPreview').style.display = 'none';
+            document.getElementById('actionButtons').style.display = 'none';
+            document.getElementById('processBtn').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+            
+            // Show file input
+            document.getElementById('fileInputWrapper').style.display = 'block';
+            
+            // Reset captured image
+            const capturedImage = document.getElementById('capturedImage');
+            capturedImage.style.display = 'none';
+            capturedImage.src = '';
+            
+            // Reset file input
+            document.getElementById('fileInput').value = '';
+            
+            // Stop camera if running
+            stopCamera();
+        }
+
+        // Add button to start camera if supported
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            const startCameraBtn = document.createElement('button');
+            startCameraBtn.className = 'btn secondary';
+            startCameraBtn.innerHTML = '📹 Use Camera';
+            startCameraBtn.onclick = startCamera;
+            
+            const fileWrapper = document.getElementById('fileInputWrapper');
+            fileWrapper.parentNode.insertBefore(startCameraBtn, fileWrapper.nextSibling);
+        }
+    </script>
+</body>
+</html>
