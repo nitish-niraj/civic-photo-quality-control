@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Development
+.git/
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# Storage (runtime generated)
+storage/temp/*
+storage/processed/*
+storage/rejected/*
+logs/*
+
+# Documentation & tests
+docs/
+tests/
+*.md
+CHANGELOG.md
+QUICK_START.md
+
+# CI/CD
+.github/
+
+# Local dev files
+api_test.py
+start_production.sh
+start_production.bat

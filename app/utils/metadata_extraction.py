@@ -255,33 +255,3 @@ class MetadataExtractor:
             "quality_level": quality_level,
             "meets_requirements": completeness_percentage >= 70
         }
-    
-    @staticmethod
-    def validate_location(gps_data: Dict, boundaries: Dict) -> Dict:
-        """Validate if GPS coordinates are within city boundaries."""
-        if not gps_data:
-            return {
-                "within_boundaries": False,
-                "reason": "No GPS data available"
-            }
-        
-        lat = gps_data.get("latitude")
-        lon = gps_data.get("longitude")
-        
-        if lat is None or lon is None:
-            return {
-                "within_boundaries": False,
-                "reason": "Invalid GPS coordinates"
-            }
-        
-        within_bounds = (
-            boundaries["min_lat"] <= lat <= boundaries["max_lat"] and
-            boundaries["min_lon"] <= lon <= boundaries["max_lon"]
-        )
-        
-        return {
-            "within_boundaries": within_bounds,
-            "latitude": lat,
-            "longitude": lon,
-            "reason": "Valid location" if within_bounds else "Outside city boundaries"
-        }

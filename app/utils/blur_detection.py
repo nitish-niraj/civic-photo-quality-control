@@ -1,6 +1,35 @@
 import cv2
 import numpy as np
-from typing import Tuple
+from typing import Optional, Tuple, Union
+
+
+def blur_score(image: Optional[Union[str, bytes, np.ndarray]]) -> float:
+    """Return Laplacian variance for backward-compatible API calls.
+
+    Accepts either a path to an image on disk or an in-memory numpy array.
+    When the input is ``None`` or invalid, ``0.0`` is returned so legacy
+    callers can treat the output as a failed blur computation.
+    """
+    if image is None:
+        return 0.0
+
+    try:
+        if isinstance(image, (str, bytes)):
+            frame = cv2.imread(image)
+        else:
+            frame = np.asarray(image)
+
+        if frame is None or frame.size == 0:
+            return 0.0
+
+        if frame.ndim == 3:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = frame
+
+        return float(cv2.Laplacian(gray, cv2.CV_64F).var())
+    except Exception:
+        return 0.0
 
 class BlurDetector:
     """Detects image blur using Laplacian variance method."""

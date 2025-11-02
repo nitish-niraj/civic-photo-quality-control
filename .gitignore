@@ -75,11 +75,7 @@ dmypy.json
 .idea/
 .DS_Store
 Thumbs.db
-storage/temp/*
-storage/processed/*
-storage/rejected/*
-!storage/temp/.gitkeep
-!storage/processed/.gitkeep
-!storage/rejected/.gitkeep
-models/*.pt
-!models/.gitkeep
+# Auto-created directories (app creates these automatically)
+storage/
+logs/
+*.log

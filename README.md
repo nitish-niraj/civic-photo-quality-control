@@ -1,6 +1,6 @@
-# Civic Quality Control API
+# PhotoGuard API
 
-A production-ready mobile photo validation system for civic documentation with intelligent quality control and comprehensive API endpoints.
+Professional image quality validation system with automated blur detection, brightness analysis, resolution checking, exposure verification, and metadata extraction.
 
 ## 🚀 Key Features
 
@@ -49,18 +49,20 @@ pip install -r requirements.txt
 ### Setup & Run
 
 ```bash
-# Setup directories and download models
-python scripts/setup_directories.py
-python scripts/download_models.py
-
-# Start development server
+# Start development server (creates storage directories automatically)
 python app.py
 
-# Access mobile interface
-# http://localhost:5000/mobile_upload.html
+# Access the web interface
+# http://localhost:5000
 ```
 
-## 📱 API Endpoints
+## � API Documentation
+
+### Interactive Documentation
+
+- **Swagger UI**: http://localhost:5000/api/docs - Interactive API testing interface
+- **ReDoc**: http://localhost:5000/api/redoc - Comprehensive API reference
+- **OpenAPI Spec**: http://localhost:5000/api/openapi.json - OpenAPI 3.1 specification
 
 ### Core Endpoints
 
@@ -140,17 +142,7 @@ GET /api/validation-rules
 ```
 Returns current validation thresholds and requirements.
 
-### Testing Endpoints
 
-#### 5. API Information  
-```bash
-GET /api/test-api
-```
-
-#### 6. Legacy Upload (Deprecated)
-```bash
-POST /api/upload
-```
 
 ## 🏗️ Production Deployment
 
@@ -266,8 +258,7 @@ civic_quality_app/
 │       ├── brightness_validation.py
 │       ├── exposure_check.py
 │       ├── resolution_check.py
-│       ├── metadata_extraction.py
-│       └── object_detection.py
+│       └── metadata_extraction.py
 │
 ├── storage/                    # File storage
 │   ├── temp/                  # Temporary uploads
@@ -366,14 +357,12 @@ For issues and improvements:
 ### Future Enhancements
 
 - [ ] Real-time processing optimization
-- [ ] Advanced object detection integration
-- [ ] GPS metadata validation
 - [ ] Batch processing capabilities
 - [ ] API rate limiting
 - [ ] Enhanced mobile UI
 
 ---
 
-**Version**: 2.0  
-**Last Updated**: September 25, 2025  
+**Version**: 3.0.0  
+**Last Updated**: November 3, 2025  
 **Production Status**: ✅ Ready for deployment

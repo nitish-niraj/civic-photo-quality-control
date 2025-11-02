@@ -22,41 +22,20 @@ class QualityControlService:
             # Config class instance
             self.processed_folder = config.PROCESSED_FOLDER
             self.rejected_folder = config.REJECTED_FOLDER
-            self.yolo_model_path = config.YOLO_MODEL_PATH
             self.blur_threshold = config.BLUR_THRESHOLD
             self.min_brightness = config.MIN_BRIGHTNESS
             self.max_brightness = config.MAX_BRIGHTNESS
             self.min_resolution_width = config.MIN_RESOLUTION_WIDTH
             self.min_resolution_height = config.MIN_RESOLUTION_HEIGHT
-            self.city_boundaries = config.CITY_BOUNDARIES
         else:
             # Flask config object (dictionary-like)
             self.processed_folder = config.get('PROCESSED_FOLDER', 'storage/processed')
             self.rejected_folder = config.get('REJECTED_FOLDER', 'storage/rejected')
-            self.yolo_model_path = config.get('YOLO_MODEL_PATH', 'models/yolov8n.pt')
             self.blur_threshold = config.get('BLUR_THRESHOLD', 100.0)
             self.min_brightness = config.get('MIN_BRIGHTNESS', 30)
             self.max_brightness = config.get('MAX_BRIGHTNESS', 220)
             self.min_resolution_width = config.get('MIN_RESOLUTION_WIDTH', 800)
             self.min_resolution_height = config.get('MIN_RESOLUTION_HEIGHT', 600)
-            self.city_boundaries = config.get('CITY_BOUNDARIES', {
-                'min_lat': 40.4774,
-                'max_lat': 40.9176,
-                'min_lon': -74.2591,
-                'max_lon': -73.7004
-            })
-        
-        self.object_detector = None
-        self._initialize_object_detector()
-    
-    def _initialize_object_detector(self):
-        """Initialize object detector if model exists."""
-        try:
-            if os.path.exists(self.yolo_model_path):
-                from app.utils.object_detection import ObjectDetector
-                self.object_detector = ObjectDetector(self.yolo_model_path)
-        except Exception as e:
-            print(f"Warning: Object detector initialization failed: {e}")
     
     def validate_image(self, image_path: str) -> Dict:
         """
@@ -82,8 +61,7 @@ class QualityControlService:
                     "blur_detection": None,
                     "brightness_validation": None,
                     "resolution_check": None,
-                    "metadata_extraction": None,
-                    "object_detection": None
+                    "metadata_extraction": None
                 },
                 "metrics": {},
                 "recommendations": []
@@ -187,38 +165,9 @@ class QualityControlService:
                 metadata = MetadataExtractor.extract_metadata(image_path)
                 results["validations"]["metadata_extraction"] = metadata
                 
-                # Check GPS location if available
-                if metadata.get("gps_data"):
-                    location_validation = MetadataExtractor.validate_location(
-                        metadata["gps_data"], self.city_boundaries
-                    )
-                    if not location_validation["within_boundaries"]:
-                        results["warnings"].append({
-                            "type": "location",
-                            "message": location_validation["reason"]
-                        })
-                
             except Exception as e:
                 results["validations"]["metadata_extraction"] = {"error": str(e)}
-                results["warnings"].append(f"Metadata extraction failed: {str(e)}")            # 6. Object Detection (if available)
-            if self.object_detector:
-                try:
-                    detection_results = self.object_detector.detect_objects(image_path)
-                    results["validations"]["object_detection"] = detection_results
-
-                    if not detection_results["has_civic_content"]:
-                        results["warnings"].append({
-                            "type": "civic_content",
-                            "message": "No civic-related objects detected in image"
-                        })
-
-                except Exception as e:
-                    results["validations"]["object_detection"] = {"error": str(e)}
-                    results["warnings"].append(f"Object detection failed: {str(e)}")
-            else:
-                results["validations"]["object_detection"] = {
-                    "message": "Object detection not available - model not loaded"
-                }
+                results["warnings"].append(f"Metadata extraction failed: {str(e)}")
 
             # Calculate overall metrics
             results["metrics"] = self._calculate_metrics(results)

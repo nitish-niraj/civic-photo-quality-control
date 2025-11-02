@@ -53,7 +53,7 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p storage/temp storage/processed storage/rejected models
+RUN mkdir -p storage/temp storage/processed storage/rejected
 
 # Set ownership and permissions
 RUN chown -R app:app /app && \
@@ -62,15 +62,12 @@ RUN chown -R app:app /app && \
 # Switch to non-root user
 USER app
 
-# Download YOLO model if not present
-RUN python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')" || true
-
 # Expose port
 EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8000/api/health || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')" || exit 1
 
 # Production server command
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "production:app"]

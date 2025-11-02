@@ -1,24 +1,63 @@
+import io
+
 import pytest
-from flask import Flask
-from app import app  # Import the Flask app
+from PIL import Image
+
+from app import create_app
+
 
 @pytest.fixture
-def client():
-    """Test client for the Flask app."""
-    app.config['TESTING'] = True
+def client(tmp_path):
+    """Configure an isolated Flask test client per test run."""
+    app = create_app('testing')
+
+    upload_dir = tmp_path / 'uploads'
+    processed_dir = tmp_path / 'processed'
+    rejected_dir = tmp_path / 'rejected'
+    for directory in (upload_dir, processed_dir, rejected_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+
+    app.config.update({
+        'UPLOAD_FOLDER': str(upload_dir),
+        'PROCESSED_FOLDER': str(processed_dir),
+        'REJECTED_FOLDER': str(rejected_dir),
+    })
+
     with app.test_client() as client:
         yield client
 
-def test_check_quality_no_image(client):
-    """Test check_quality endpoint with no image."""
-    response = client.post('/check_quality')
-    assert response.status_code == 400
-    data = response.get_json()
-    assert 'error' in data
-    assert data['error'] == 'No image uploaded'
 
-def test_check_quality_with_image(client, sample_image):
-    """Test check_quality endpoint with a sample image."""
-    # This would need actual image data
-    # For now, just test the structure
-    pass
+def test_health_endpoint(client):
+    response = client.get('/api/health')
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload['success'] is True
+    assert payload['data']['status'] == 'healthy'
+
+
+def test_validate_endpoint_without_file(client):
+    response = client.post('/api/validate')
+    assert response.status_code == 400
+    payload = response.get_json()
+    assert payload['success'] is False
+    assert 'No image file provided' in payload['message']
+
+
+def test_validate_endpoint_with_generated_image(client):
+    image = Image.new('RGB', (1024, 768), color=(180, 180, 180))
+    buffer = io.BytesIO()
+    image.save(buffer, format='JPEG')
+    buffer.seek(0)
+
+    response = client.post(
+        '/api/validate',
+        data={'image': (buffer, 'sample.jpg')},
+        content_type='multipart/form-data'
+    )
+
+    # Validation may return 200 for pass/fail; ensure we get a structured payload.
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload['success'] is True
+    assert 'summary' in payload['data']
+    assert 'checks' in payload['data']

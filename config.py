@@ -145,34 +145,12 @@ class Config:
     }
     
     # ===================================================================
-    # MACHINE LEARNING MODEL CONFIGURATION
-    # ===================================================================
-    
-    # Path to YOLOv8 object detection model
-    # Used for identifying civic-related objects (optional feature)
-    YOLO_MODEL_PATH = os.environ.get('YOLO_MODEL_PATH', 'models/yolov8n.pt')
-    
-    # ===================================================================
     # FILE TYPE CONFIGURATION
     # ===================================================================
     
     # Allowed image file extensions for upload
     # Supports common mobile photo formats including HEIC (iOS)
     ALLOWED_EXTENSIONS = set(os.environ.get('ALLOWED_EXTENSIONS', 'jpg,jpeg,png,bmp,tiff').split(','))
-    
-    # ===================================================================
-    # GEOGRAPHIC VALIDATION (Optional Feature)
-    # ===================================================================
-    
-    # Geographic boundaries for location validation
-    # Example coordinates for New York City area
-    # Customize these for your specific civic area
-    CITY_BOUNDARIES = {
-        'min_lat': 40.4774,  # Southern boundary (latitude)
-        'max_lat': 40.9176,  # Northern boundary (latitude)
-        'min_lon': -74.2591,  # Western boundary (longitude)
-        'max_lon': -73.7004  # Eastern boundary (longitude)
-    }
 
 
 # ===================================================================
@@ -189,11 +167,14 @@ class ProductionConfig(Config):
     """Production environment configuration with debug mode disabled."""
     DEBUG = False
     TESTING = False
-    
-    # Override with stricter settings if needed
-    # Example: Require HTTPS in production
-    # SESSION_COOKIE_SECURE = True
-    # SESSION_COOKIE_HTTPONLY = True
+
+
+class TestingConfig(Config):
+    """Testing configuration with deterministic behaviour."""
+    DEBUG = False
+    TESTING = True
+    # Use in-memory friendly limits to keep tests fast
+    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 8 * 1024 * 1024))
 
 
 # Configuration dictionary for easy access
@@ -201,5 +182,6 @@ class ProductionConfig(Config):
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
+    'testing': TestingConfig,
     'default': DevelopmentConfig  # Default to development if not specified
 }
