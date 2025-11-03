@@ -1,15 +1,17 @@
-# PhotoGuard API
+# PhotoGuard API 🛡️
 
 Professional image quality validation system with automated blur detection, brightness analysis, resolution checking, exposure verification, and metadata extraction.
 
 ## 🚀 Key Features
 
-- **📱 Mobile-Optimized**: Designed specifically for mobile photography with realistic validation thresholds
-- **⚖️ Weighted Scoring System**: Intelligent partial credit system with 65% pass threshold
-- **🎯 High Acceptance Rate**: Optimized to achieve 35-40% acceptance rate for quality mobile photos
-- **📊 Comprehensive API**: Full REST API with health checks, validation, and statistics
-- **⚡ Real-time Processing**: Instant image validation with detailed feedback
-- **🔍 Multi-layer Validation**: Blur, brightness, resolution, exposure, and metadata analysis
+- **🎨 Modern UI**: Clean monochrome interface with black/white/gray theme
+- **📚 Interactive Documentation**: Complete Swagger UI and ReDoc API documentation
+- **📱 Mobile-Optimized**: Realistic validation thresholds for mobile photography
+- **⚖️ Weighted Scoring System**: Intelligent partial credit with 65% pass threshold
+- **🎯 High Acceptance Rate**: 35-40% acceptance rate for quality images
+- **📊 Comprehensive API**: RESTful API with OpenAPI 3.1 specification
+- **⚡ Real-time Processing**: Instant validation with detailed feedback
+- **🔍 Multi-layer Validation**: 5 automated quality checks
 
 ## 📊 Performance Metrics
 
@@ -38,31 +40,48 @@ Professional image quality validation system with automated blur detection, brig
 
 ### Prerequisites
 
+- Python 3.8 or higher
+- pip (Python package manager)
+
+### Installation
+
 ```bash
-# Python 3.8+
-python --version
+# Clone the repository
+git clone https://github.com/nitish-niraj/civic-photo-quality-control.git
+cd civic-photo-quality-control
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### Setup & Run
+### Run Locally
 
 ```bash
-# Start development server (creates storage directories automatically)
+# Start development server (auto-creates storage directories)
 python app.py
 
-# Access the web interface
-# http://localhost:5000
+# Access the application
+# Web UI: http://localhost:5000
+# Swagger UI: http://localhost:5000/api/docs
+# ReDoc: http://localhost:5000/api/redoc
 ```
 
-## � API Documentation
+## 📚 API Documentation
 
 ### Interactive Documentation
 
-- **Swagger UI**: http://localhost:5000/api/docs - Interactive API testing interface
-- **ReDoc**: http://localhost:5000/api/redoc - Comprehensive API reference
-- **OpenAPI Spec**: http://localhost:5000/api/openapi.json - OpenAPI 3.1 specification
+PhotoGuard provides comprehensive API documentation through multiple interfaces:
+
+| Documentation | URL | Description |
+|--------------|-----|-------------|
+| **Swagger UI** | `/api/docs` | Interactive testing interface with live API execution |
+| **ReDoc** | `/api/redoc` | Clean, comprehensive API reference with schemas |
+| **OpenAPI Spec** | `/api/openapi.json` | Complete OpenAPI 3.1 specification (JSON) |
+
+**Local URLs:**
+- Swagger UI: http://localhost:5000/api/docs
+- ReDoc: http://localhost:5000/api/redoc
+- OpenAPI: http://localhost:5000/api/openapi.json
 
 ### Core Endpoints
 
@@ -146,31 +165,95 @@ Returns current validation thresholds and requirements.
 
 ## 🏗️ Production Deployment
 
-### Docker Deployment (Recommended)
+### Docker Deployment
 
 ```bash
 # Build production image
-docker build -t civic-quality-app .
+docker build -t photoguard-api .
 
-# Run with Docker Compose
-docker-compose up -d
+# Run container
+docker run -d -p 5000:5000 --name photoguard photoguard-api
 
 # Access production app
-# http://localhost:8000
+# http://localhost:5000
 ```
 
-### Manual Deployment
+### Deployment to Hugging Face Spaces
+
+PhotoGuard can be deployed to **Hugging Face Spaces** (not Models) as it's a web application with UI and API endpoints.
+
+#### Step 1: Create a Space
+
+1. Go to https://huggingface.co/spaces
+2. Click "Create new Space"
+3. Choose:
+   - **Space name**: `photoguard-api` (or your preferred name)
+   - **SDK**: Docker
+   - **Space hardware**: CPU basic (free tier works fine)
+
+#### Step 2: Prepare Your Repository
+
+```bash
+# Clone your Space repository
+git clone https://huggingface.co/spaces/YOUR_USERNAME/photoguard-api
+cd photoguard-api
+
+# Copy PhotoGuard files
+cp -r /path/to/civic_quality_app/* .
+```
+
+#### Step 3: Create README.md for Spaces
+
+Add this header to your README.md:
+
+```markdown
+---
+title: PhotoGuard API
+emoji: 🛡️
+colorFrom: black
+colorTo: gray
+sdk: docker
+pinned: false
+---
+```
+
+#### Step 4: Deploy
+
+```bash
+# Add all files
+git add .
+
+# Commit changes
+git commit -m "Deploy PhotoGuard API to Hugging Face Spaces"
+
+# Push to Hugging Face
+git push
+```
+
+#### Environment Variables (Optional)
+
+If you need to set environment variables in your Space:
+1. Go to Space Settings → Variables and secrets
+2. Add variables like:
+   - `SECRET_KEY`: Your Flask secret key
+   - `MAX_CONTENT_LENGTH`: Maximum upload size
+
+#### Access Your Deployed API
+
+Once deployed, your Space will be available at:
+- **UI**: `https://huggingface.co/spaces/YOUR_USERNAME/photoguard-api`
+- **API**: `https://YOUR_USERNAME-photoguard-api.hf.space/api/validate`
+- **Swagger**: `https://YOUR_USERNAME-photoguard-api.hf.space/api/docs`
+- **ReDoc**: `https://YOUR_USERNAME-photoguard-api.hf.space/api/redoc`
+
+### Manual Server Deployment
 
 ```bash
 # Install production dependencies
 pip install -r requirements.txt gunicorn
 
-# Run with Gunicorn
-gunicorn --bind 0.0.0.0:8000 --workers 4 production:app
-
-# Or use production script
-chmod +x start_production.sh
-./start_production.sh
+# Run with Gunicorn (production WSGI server)
+gunicorn --bind 0.0.0.0:5000 --workers 4 --timeout 120 app:app
 ```
 
 ## ⚙️ Configuration
@@ -241,128 +324,205 @@ VALIDATION_RULES = {
 
 ```
 civic_quality_app/
-├── app.py                      # Development server
-├── production.py               # Production WSGI app
-├── config.py                   # Configuration & validation rules
-├── requirements.txt            # Python dependencies
-├── docker-compose.yml          # Docker orchestration
-├── Dockerfile                  # Container definition
+├── app.py                          # Flask application entry point
+├── config.py                       # Configuration & validation rules
+├── requirements.txt                # Python dependencies
+├── Dockerfile                      # Docker container definition
+├── .dockerignore                   # Docker ignore patterns
+├── .gitignore                      # Git ignore patterns
 │
-├── app/                        # Application package
+├── app/                            # Core application package
+│   ├── __init__.py                # App factory
+│   ├── api_spec.py                # OpenAPI 3.1 specification
 │   ├── routes/
-│   │   └── upload.py          # API route handlers
+│   │   └── upload.py              # API endpoints & documentation routes
 │   ├── services/
-│   │   └── quality_control.py # Core validation logic
-│   └── utils/                 # Validation utilities
-│       ├── blur_detection.py
-│       ├── brightness_validation.py
-│       ├── exposure_check.py
-│       ├── resolution_check.py
-│       └── metadata_extraction.py
+│   │   └── quality_control.py     # Validation orchestration
+│   └── utils/                     # Validation utilities
+│       ├── blur_detection.py      # Laplacian variance analysis
+│       ├── brightness_validation.py # Pixel intensity check
+│       ├── exposure_check.py      # Dynamic range analysis
+│       ├── resolution_check.py    # Dimension validation
+│       ├── metadata_extraction.py # EXIF data extraction
+│       └── response_formatter.py  # API response formatting
 │
-├── storage/                    # File storage
-│   ├── temp/                  # Temporary uploads
-│   ├── processed/             # Accepted images
-│   └── rejected/              # Rejected images
+├── templates/                      # HTML templates
+│   ├── index.html                 # Main UI (monochrome theme)
+│   ├── swagger.html               # Swagger UI documentation
+│   └── redoc.html                 # ReDoc API reference
 │
-├── templates/
-│   └── mobile_upload.html     # Mobile web interface
+├── storage/                        # Auto-created storage directories
+│   ├── temp/                      # Temporary uploads
+│   ├── processed/                 # Accepted images
+│   └── rejected/                  # Failed images
 │
-├── tests/                     # Test suites
-├── docs/                      # Documentation
-├── scripts/                   # Setup scripts
-└── logs/                      # Application logs
+└── tests/                         # Test suite
+    ├── conftest.py                # Test configuration
+    ├── test_api_endpoints.py      # API tests
+    ├── test_blur_detection.py     # Blur detection tests
+    └── sample_images/             # Test images
+        ├── blurry/
+        ├── dark/
+        ├── good/
+        └── low_res/
 ```
 
 ## 🧪 Testing
 
-### Comprehensive API Testing
+### API Testing
 
 ```bash
-# Run full API test suite
-python api_test.py
-
-# Test specific endpoints
+# Test health endpoint
 curl http://localhost:5000/api/health
+
+# Validate an image
 curl -X POST -F 'image=@test.jpg' http://localhost:5000/api/validate
+
+# Get validation rules
+curl http://localhost:5000/api/validation-rules
+
+# Get processing statistics
 curl http://localhost:5000/api/summary
 ```
 
 ### Unit Testing
 
 ```bash
-# Run validation tests
+# Run all tests
 python -m pytest tests/
 
-# Test specific components
-python test_blur_detection.py
-python test_brightness_validation.py
+# Run specific test files
+pytest tests/test_blur_detection.py
+pytest tests/test_api_endpoints.py
+
+# Run with verbose output
+pytest -v tests/
 ```
 
 ## 📊 Monitoring & Analytics
 
 ### Processing Statistics
 
-- **Total Images Processed**: Track via `/api/summary`
-- **Acceptance Rate**: Current rate ~35-40%
-- **Common Rejection Reasons**: Available in logs and statistics
-- **Processing Performance**: Response time monitoring
-
-### Log Analysis
+Track validation metrics through the `/api/summary` endpoint:
 
 ```bash
-# Check application logs
-tail -f logs/app.log
+# Get processing statistics
+curl http://localhost:5000/api/summary
 
-# Monitor processing stats
+# Pretty print with jq
 curl http://localhost:5000/api/summary | jq '.data'
 ```
+
+**Available Metrics:**
+- Total images processed
+- Pass/fail counts
+- Acceptance rate (~35-40%)
+- Average quality scores
+- Common rejection reasons
 
 ## 🔧 Troubleshooting
 
 ### Common Issues
 
-1. **Low Acceptance Rate**
-   - Check if validation rules are too strict
-   - Review mobile photo quality expectations
-   - Adjust thresholds in `config.py`
+**1. Port Already in Use**
+```bash
+# Check what's using port 5000
+netstat -ano | findstr :5000  # Windows
+lsof -i :5000                 # Linux/Mac
 
-2. **Performance Issues**
-   - Monitor memory usage for large images
-   - Consider image resizing for very large uploads
-   - Check model loading performance
+# Use a different port
+export FLASK_RUN_PORT=8000
+python app.py
+```
 
-3. **Deployment Issues**
-   - Verify all dependencies installed
-   - Check file permissions for storage directories
-   - Ensure models are downloaded correctly
+**2. Storage Directory Errors**
+- Storage directories are auto-created on startup
+- Ensure write permissions in the application directory
 
-### Support
+**3. Image Upload Fails**
+- Check file size (max 16MB by default)
+- Verify file format (jpg, jpeg, png, bmp, tiff)
+- Check `MAX_CONTENT_LENGTH` in config.py
 
-For issues and improvements:
-1. Check logs in `logs/` directory
-2. Test individual validation components
-3. Review configuration in `config.py`
-4. Use API testing tools for debugging
+**4. Low Acceptance Rate**
+- Review validation thresholds in `config.py`
+- Current system targets 35-40% acceptance for quality images
+- Adjust `VALIDATION_RULES` if needed
 
-## 📈 Performance Optimization
+**5. API Documentation Not Loading**
+- Ensure Flask server is running
+- Check browser console for errors
+- Try accessing OpenAPI spec directly: `/api/openapi.json`
 
-### Current Optimizations
+### Getting Help
 
-- **Mobile-Friendly Rules**: Relaxed thresholds for mobile photography
-- **Weighted Scoring**: Intelligent partial credit system
-- **Efficient Processing**: Optimized validation pipeline
-- **Smart Caching**: Model loading optimization
+- **Issues**: https://github.com/nitish-niraj/civic-photo-quality-control/issues
+- **API Docs**: Use `/api/docs` for interactive testing
+- **Logs**: Check Flask console output for errors
 
-### Future Enhancements
+## 🎨 UI Features
 
-- [ ] Real-time processing optimization
-- [ ] Batch processing capabilities
-- [ ] API rate limiting
-- [ ] Enhanced mobile UI
+### Modern Interface
+
+- **Monochrome Theme**: Professional black/white/gray color scheme
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Drag & Drop Upload**: Easy file upload with visual feedback
+- **Real-time Results**: Instant validation feedback with detailed scores
+- **Interactive Documentation**: Built-in Swagger UI and ReDoc access
+
+### Navigation Sections
+
+1. **Home**: Upload and validate images
+2. **How It Works**: 3-step validation process explanation
+3. **API Docs**: Interactive API documentation access
+
+## 📈 Technical Highlights
+
+### Performance
+
+- **Processing Speed**: < 2 seconds per image
+- **Supported Formats**: JPG, JPEG, PNG, BMP, TIFF
+- **Max Upload Size**: 16MB (configurable)
+- **Concurrent Requests**: Supported via WSGI server
+
+### Validation Accuracy
+
+- **Blur Detection**: Laplacian variance (min: 100)
+- **Brightness Range**: 50-220 pixel intensity
+- **Resolution**: Min 800×600 pixels, 0.5MP
+- **Exposure**: Dynamic range ≥100, clipping ≤2%
+- **Metadata**: 15% completeness minimum
+
+### API Specifications
+
+- **Protocol**: REST API over HTTP
+- **Format**: JSON request/response
+- **Documentation**: OpenAPI 3.1
+- **Authentication**: None (add as needed)
+- **CORS**: Configurable
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is open source and available for use and modification.
+
+## 🔗 Links
+
+- **GitHub**: https://github.com/nitish-niraj/civic-photo-quality-control
+- **Issues**: https://github.com/nitish-niraj/civic-photo-quality-control/issues
 
 ---
 
 **Version**: 3.0.0  
 **Last Updated**: November 3, 2025  
-**Production Status**: ✅ Ready for deployment
+**Status**: ✅ Production Ready  
+**Deployment**: Docker, Hugging Face Spaces, Manual Server
