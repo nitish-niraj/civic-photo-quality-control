@@ -1,3 +1,13 @@
+---
+title: PhotoGuard API
+emoji: 🛡️
+colorFrom: black
+colorTo: gray
+sdk: docker
+pinned: false
+license: mit
+---
+
 # PhotoGuard API 🛡️
 
 Professional image quality validation system with automated blur detection, brightness analysis, resolution checking, exposure verification, and metadata extraction.
